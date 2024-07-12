@@ -66,7 +66,7 @@ public class DBManager : MonoBehaviour
     {
         testKeyValue testJson = new testKeyValue(testNum, "testSuccess");
         string jsondata = JsonUtility.ToJson(testJson);
-        refData.Child("Information").Child(jsondata);
+        refData.Child("Information").Child(testNum).SetRawJsonValueAsync(jsondata);
     }
 }
 
