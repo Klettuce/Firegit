@@ -13,22 +13,21 @@ public class DBManager : MonoBehaviour
     DatabaseReference refData;
     public Text Text;
 
-    // Start is called before the first frame update
     void Awake()
     {
         DontDestroyOnLoad(gameObject);
         refData = FirebaseDatabase.DefaultInstance.RootReference;
+
     }
 
-    // Update is called once per frame
     void Update()
     {
         
     }
 
-    public void SaveData() //파라미터 CheakData 객체로 수정 필요
+    public void SaveData(string data) //파라미터 CheakData 객체로 수정 필요
     {
-        CheakData data1 = new CheakData(255, "2024-05-10", "2027-06-10", 8f);
+        CheakData data1 = new CheakData(255, "2024-06-10", "2027-06-10", 8f);
 
         string jsondata = JsonUtility.ToJson(data1);
         //refData.Child("Information").Child("data1").SetRawJsonValueAsync(jsondata); 
