@@ -61,6 +61,25 @@ public class DBManager : MonoBehaviour
             }
         });
     }
+
+    public void testDataUpload(string testNum)
+    {
+        testKeyValue testJson = new testKeyValue(testNum, "testSuccess");
+        string jsondata = JsonUtility.ToJson(testJson);
+        refData.Child("Information").Child(jsondata);
+    }
+}
+
+public class testKeyValue
+{
+    string Key;
+    string Value;
+
+    public testKeyValue(string _Key, string _Value)
+    {
+        Key = _Key;
+        Value = _Value;
+    }
 }
 
 public class CheakData
