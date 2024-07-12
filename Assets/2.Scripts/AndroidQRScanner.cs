@@ -10,6 +10,7 @@ public class AndroidQRScanner : MonoBehaviour
     public RawImage cameraFeed;
     private bool isCameraRunning = false;
     private WebCamTexture camTexture;
+    public GameObject DBManager;
 
     IEnumerator Start()
     {
@@ -58,9 +59,14 @@ public class AndroidQRScanner : MonoBehaviour
                 Result result = barcodeReader.Decode(camTexture.GetPixels32(), camTexture.width, camTexture.height);
                 if (result != null)
                 {
-                    resultText.text = result.ToString();
+                    string data = result.ToString();
+                    resultText.text = data;
                     Debug.Log("SCANNED: " + result.Text);
                     // 여기에서 QR 코드 데이터를 처리하는 로직을 추가하세요
+                    // 
+                    DBManager.GetComponent<DBManager>().LoadData(data);
+
+
                 }
             }
             catch (System.Exception ex)
