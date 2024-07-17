@@ -3,6 +3,7 @@ using Unity.Collections;
 using UnityEngine.UI;
 using ZXing;
 using System.Collections;
+using System.Collections.Generic;
 
 public class AndroidQRScanner : MonoBehaviour
 {
@@ -10,18 +11,18 @@ public class AndroidQRScanner : MonoBehaviour
     public RawImage cameraFeed;
     private bool isCameraRunning = false;
     private WebCamTexture camTexture;
-    GameObject DBManager;
-
+    private GameObject DBManager;
+    public Dictionary<string, GameObject> menu;
+    private string data;
+    private bool isScanning = false; // 스캔 빈도를 조절하기 위한 변수
     IEnumerator Start()
     {
         yield return Application.RequestUserAuthorization(UserAuthorization.WebCam);
-        DBManager = GameObject.Find("DBManager");
         if (Application.HasUserAuthorization(UserAuthorization.WebCam))
         {
             WebCamDevice[] devices = WebCamTexture.devices;
             if (devices.Length == 0)
             {
-                Debug.Log("No camera detected");
                 yield break;
             }
 
@@ -36,46 +37,57 @@ public class AndroidQRScanner : MonoBehaviour
 
             if (camTexture == null)
             {
-                Debug.Log("Unable to find back camera");
                 yield break;
             }
 
+            // 카메라 화면을 유지하기 위해 RenderTexture를 사용
+            //RenderTexture renderTexture = new RenderTexture(Screen.width, Screen.height, 0);
             cameraFeed.texture = camTexture;
+            //cameraFeed.material.mainTexture = camTexture;
+
             camTexture.Play();
             isCameraRunning = true;
-        }
-        else
-        {
-            Debug.Log("Camera Permission Denied");
         }
     }
 
     void Update()
     {
-        if (isCameraRunning && camTexture.isPlaying)
+        if (isCameraRunning && camTexture.isPlaying && !isScanning)
         {
-            try
-            {
-                IBarcodeReader barcodeReader = new BarcodeReader();
-                Result result = barcodeReader.Decode(camTexture.GetPixels32(), camTexture.width, camTexture.height);
-                if (result != null)
-                {
-                    string data = result.ToString();
-                    resultText.text = data;
-                    Debug.Log("SCANNED: " + result.Text);
-                    // 여기에서 QR 코드 데이터를 처리하는 로직을 추가하세요
-                    // 
-                    //DBManager.GetComponent<DBManager>().LoadData(data); //qr 스캔 텍스트
-                    DBManager.GetComponent<DBManager>().testDataUpload(data);
-
-
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogWarning(ex.Message);
-            }
+            StartCoroutine(ScanQRCode());
         }
+    }
+    IEnumerator ScanQRCode()
+    {
+        isScanning = true; // 스캔 중임을 표시
+        yield return new WaitForSeconds(1f); // 1초 대기
+
+        IBarcodeReader barcodeReader = new BarcodeReader();
+        Result result = barcodeReader.Decode(camTexture.GetPixels32(), camTexture.width, camTexture.height);
+        if (result != null)
+        {
+            data = result.ToString();
+            menu[data].SetActive(true);
+            StopAllCoroutines();
+        }
+        else if (data != "")
+        {
+            StartCoroutine(ClosePanel());
+        }
+
+        isScanning = false; // 스캔 완료 표시
+    }
+    private IEnumerator ClosePanel()
+    {
+        yield return new WaitForSeconds(2f);
+        menu[data].SetActive(false);
+        data = "";
+    }
+    public void SendData()
+    {
+        // string data = result.ToString();
+        DBManager.GetComponent<DBManager>().LoadData(data);
+
     }
 
     void OnDisable()
