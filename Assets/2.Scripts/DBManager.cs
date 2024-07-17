@@ -7,76 +7,97 @@ using Firebase.Extensions;
 using System;
 using UnityEngine.UI;
 using System.Runtime.CompilerServices;
+using UnityEngine.InputSystem.Interactions;
+using System.Linq;
+using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 public class DBManager : MonoBehaviour
-{ 
+{
     DatabaseReference refData;
-    public Text Text;
+    public static DBManager instance;
+    public CheckData cheakData;
 
     void Awake()
     {
-        DontDestroyOnLoad(gameObject);
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
         refData = FirebaseDatabase.DefaultInstance.RootReference;
 
+    }
+    private void Start()
+    {
     }
 
     void Update()
     {
-        
     }
 
-    public void SaveData(string data) //파라미터 CheakData 객체로 수정 필요
+    public void SaveData(CheckData data) //파라미터 CheakData 객체로 수정 필요
     {
-        CheakData data1 = new CheakData(255, "2024-06-10", "2027-06-10", 8f);
-
-        string jsondata = JsonUtility.ToJson(data1);
+        string jsondata = JsonUtility.ToJson(data);
         //refData.Child("Information").Child("data1").SetRawJsonValueAsync(jsondata); 
-        
+
         //시리얼을 먼저 키로 저장하고 아래에 json 정보 입력
-        refData.Child("Information").Child(data1.serial.ToString()).SetRawJsonValueAsync(jsondata);
+        refData.Child("Information").Child(data.serial.ToString()).SetRawJsonValueAsync(jsondata);
     }
 
-    public void LoadData(string _serial) //파라미터 CheakData 객체로 수정 필요
+    public async Task<CheckData> LoadData(string _serial)
     {
-        refData.Child("Information").Child(_serial).GetValueAsync().ContinueWithOnMainThread(task =>
+        TaskCompletionSource<CheckData> tcs = new TaskCompletionSource<CheckData>();
+
+        await refData.Child("Information").Child(_serial).GetValueAsync().ContinueWithOnMainThread(task =>
         {
-            Dictionary<string, string> LoadData = new Dictionary<string, string>();
-            if(task.IsFaulted || task.IsCanceled)
+            if (task.IsFaulted || task.IsCanceled)
             {
                 Debug.Log("로딩 실패");
+                tcs.SetException(task.Exception);
             }
-            else if(task.IsCompleted)
+            else if (task.IsCompleted)
             {
                 DataSnapshot snap = task.Result;
-                //: DB 조회 결과 형식
-
-                foreach(DataSnapshot data in snap.Children)
+                Dictionary<string, string> loadData = new Dictionary<string, string>();
+                foreach (DataSnapshot data in snap.Children)
                 {
-                    //Debug.Log($"{data.Key} : {data.Value}");
-                    LoadData.Add(data.Key, data.Value.ToString());
-                    Debug.Log($"{data.Key} : {LoadData[data.Key]}");
-                    Text.text = data.Value.ToString();
+                    loadData.Add(data.Key, data.Value.ToString());
                 }
+                CheckData result = new CheckData(loadData["serial"], loadData["MFD"], loadData["EXP"], loadData["CheakD"], loadData["PRESS"]);
+                cheakData = result;
+                tcs.SetResult(result);
             }
         });
+        return await tcs.Task;
     }
 }
 
-public class CheakData
+public class CheckData
 {
     public int serial; //시리얼 넘버(식별용)
     public string MFD; //제조일자
     public string EXP; //유효일자
-    public string Cheak; //최근 점검일자
+    public string CheakD; //최근 점검일자
     public float PRESS; //압력
 
-    public CheakData(int _serial, string _MFD, string _EXP, float _press)
+    public CheckData(int _serial)
     {
         serial = _serial;
+    }
+
+    public CheckData(string _serial, string _MFD, string _EXP, string _Cheak, string _press)
+    {
+        serial = Convert.ToInt32(_serial);
         MFD = _MFD;
         EXP = _EXP;
-        PRESS = _press;
+        CheakD = _Cheak;
+        PRESS = (float)Convert.ToDouble(_press);
     }
-    
+
     public int GetSerial() { return serial; }
 }
