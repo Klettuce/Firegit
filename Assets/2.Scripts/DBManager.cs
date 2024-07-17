@@ -13,21 +13,22 @@ public class DBManager : MonoBehaviour
     DatabaseReference refData;
     public Text Text;
 
+    // Start is called before the first frame update
     void Awake()
     {
         DontDestroyOnLoad(gameObject);
         refData = FirebaseDatabase.DefaultInstance.RootReference;
-
     }
 
+    // Update is called once per frame
     void Update()
     {
         
     }
 
-    public void SaveData(string data) //파라미터 CheakData 객체로 수정 필요
+    public void SaveData() //파라미터 CheakData 객체로 수정 필요
     {
-        CheakData data1 = new CheakData(255, "2024-06-10", "2027-06-10", 8f);
+        CheakData data1 = new CheakData(255, "2024-05-10", "2027-06-10", 8f);
 
         string jsondata = JsonUtility.ToJson(data1);
         //refData.Child("Information").Child("data1").SetRawJsonValueAsync(jsondata); 
@@ -59,6 +60,25 @@ public class DBManager : MonoBehaviour
                 }
             }
         });
+    }
+
+    public void testDataUpload(string testNum)
+    {
+        testKeyValue testJson = new testKeyValue(testNum, "testSuccess");
+        string jsondata = JsonUtility.ToJson(testJson);
+        refData.Child("Information").Child(testNum).SetRawJsonValueAsync(jsondata);
+    }
+}
+
+public class testKeyValue
+{
+    string Key;
+    string Value;
+
+    public testKeyValue(string _Key, string _Value)
+    {
+        Key = _Key;
+        Value = _Value;
     }
 }
 
