@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "341759196702",
+    "firebase_url": "https://arbase-a2519-default-rtdb.firebaseio.com",
+    "project_id": "arbase-a2519",
+    "storage_bucket": "arbase-a2519.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:341759196702:android:24ce49e4a32b7f5473380f",
+        "android_client_info": {
+          "package_name": "com.KYK.Fire"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1ecqNx67v0y1HTLCNXGuYwMS-uJHEZnE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:341759196702:android:f0878762c10f218673380f",
+        "android_client_info": {
+          "package_name": "com.kopo.admintest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1ecqNx67v0y1HTLCNXGuYwMS-uJHEZnE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
