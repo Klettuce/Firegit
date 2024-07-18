@@ -1,82 +1,99 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Firebase;
 using Firebase.Database;
-using Firebase.Extensions;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System;
 using UnityEngine.UI;
-using System.Runtime.CompilerServices;
 
 public class DBManager : MonoBehaviour
-{ 
+{
     DatabaseReference refData;
-    public Text Text;
+    public static DBManager instance;
+    public CheckData cheakData;
+
+    [Header("Debug")]
+    public Text debugText;
+    private CheckData testData;
 
     void Awake()
     {
-        DontDestroyOnLoad(gameObject);
-        refData = FirebaseDatabase.DefaultInstance.RootReference;
-
-    }
-
-    void Update()
-    {
-        
-    }
-
-    public void SaveData(string data) //파라미터 CheakData 객체로 수정 필요
-    {
-        CheakData data1 = new CheakData(255, "2024-06-10", "2027-06-10", 8f);
-
-        string jsondata = JsonUtility.ToJson(data1);
-        //refData.Child("Information").Child("data1").SetRawJsonValueAsync(jsondata); 
-        
-        //시리얼을 먼저 키로 저장하고 아래에 json 정보 입력
-        refData.Child("Information").Child(data1.serial.ToString()).SetRawJsonValueAsync(jsondata);
-    }
-
-    public void LoadData(string _serial) //파라미터 CheakData 객체로 수정 필요
-    {
-        refData.Child("Information").Child(_serial).GetValueAsync().ContinueWithOnMainThread(task =>
+        if (instance == null)
         {
-            Dictionary<string, string> LoadData = new Dictionary<string, string>();
-            if(task.IsFaulted || task.IsCanceled)
-            {
-                Debug.Log("로딩 실패");
-            }
-            else if(task.IsCompleted)
-            {
-                DataSnapshot snap = task.Result;
-                //: DB 조회 결과 형식
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+        refData = FirebaseDatabase.DefaultInstance.RootReference;
+    }
+    async private void Start()
+    {
+        testData = await LoadData("1");
+        Test();
+    }
+    public void SaveData(CheckData data)
+    {
+        string jsondata = JsonUtility.ToJson(data);
+        refData.Child("Information").Child(data.serial.ToString()).SetRawJsonValueAsync(jsondata);
+    }
 
-                foreach(DataSnapshot data in snap.Children)
-                {
-                    //Debug.Log($"{data.Key} : {data.Value}");
-                    LoadData.Add(data.Key, data.Value.ToString());
-                    Debug.Log($"{data.Key} : {LoadData[data.Key]}");
-                    Text.text = data.Value.ToString();
-                }
-            }
-        });
+    public async Task<CheckData> LoadData(string _serial)
+    {
+        DataSnapshot snap = await refData.Child("Information").Child(_serial).GetValueAsync();
+
+        if (!snap.Exists)
+        {
+            return null;
+        }
+
+        Dictionary<string, object> loadData = snap.Value as Dictionary<string, object>;
+        if (loadData == null)
+        {
+            return null;
+        }
+
+        CheckData result = new CheckData(
+            loadData["serial"].ToString(),
+            loadData["MFD"].ToString(),
+            loadData["EXP"].ToString(),
+            loadData["CheakD"].ToString(),
+            loadData["PRESS"].ToString()
+        );
+
+        cheakData = result;
+        return result;
+    }
+
+    private void Test()
+    {
+        testData.PRESS = float.Parse("40");
+        DBManager.instance.SaveData(testData);
     }
 }
 
-public class CheakData
+public class CheckData
 {
-    public int serial; //시리얼 넘버(식별용)
-    public string MFD; //제조일자
-    public string EXP; //유효일자
-    public string Cheak; //최근 점검일자
-    public float PRESS; //압력
+    public int serial;
+    public string MFD;
+    public string EXP;
+    public string CheakD;
+    public float PRESS;
 
-    public CheakData(int _serial, string _MFD, string _EXP, float _press)
+    public CheckData(int _serial)
     {
         serial = _serial;
+    }
+
+    public CheckData(string _serial, string _MFD, string _EXP, string _Cheak, string _press)
+    {
+        serial = Convert.ToInt32(_serial);
         MFD = _MFD;
         EXP = _EXP;
-        PRESS = _press;
+        CheakD = _Cheak;
+        PRESS = (float)Convert.ToDouble(_press);
     }
-    
+
     public int GetSerial() { return serial; }
 }
