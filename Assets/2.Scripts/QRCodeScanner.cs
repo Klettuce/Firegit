@@ -104,11 +104,11 @@ public class QRCodeScanner : MonoBehaviour
     {
         if (chkData != null && inputFields.Count >= 5)
         {
-            inputFields[0].text = chkData.serial.ToString();
-            inputFields[1].text = chkData.MFD;
-            inputFields[2].text = chkData.EXP;
-            inputFields[3].text = chkData.CheakD;
-            inputFields[4].text = chkData.PRESS.ToString();
+            inputFields[0].text = chkData.serial.ToString(); //시리얼
+            inputFields[1].text = chkData.MFD; // 제조일자
+            inputFields[2].text = chkData.EXP; // 유효일자
+            inputFields[3].text = chkData.CheakD; // 최근점검일
+            inputFields[4].text = chkData.PRESS.ToString(); // 압력
             if (SceneManager.GetActiveScene().name == "NormalScene")
             {
                 if (chkData.serial == 1)
